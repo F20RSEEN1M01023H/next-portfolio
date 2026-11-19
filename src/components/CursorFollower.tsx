@@ -10,23 +10,20 @@ export default function CursorFollower() {
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
 
-  // Smooth spring physics for the outer bubble
-  const springConfig = { damping: 24, stiffness: 220, mass: 0.5 };
-  const smoothX = useSpring(mouseX, springConfig);
-  const smoothY = useSpring(mouseY, springConfig);
-
-  // Slower, larger ambient glow trailing behind
-  const glowX = useSpring(mouseX, { damping: 35, stiffness: 120, mass: 1 });
-  const glowY = useSpring(mouseY, { damping: 35, stiffness: 120, mass: 1 });
+  // Smooth spring physics so the glass bubble glides gently behind the cursor
+  const bubbleSpring = { damping: 26, stiffness: 190, mass: 0.55 };
+  const bubbleX = useSpring(mouseX, bubbleSpring);
+  const bubbleY = useSpring(mouseY, bubbleSpring);
 
   useEffect(() => {
-    // Only enable on devices with a fine pointer (desktop/laptop mice)
     if (window.matchMedia('(pointer: coarse)').matches) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isVisible) setIsVisible(true);
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+
+      // Positioned further below and slightly behind the cursor arrow
+      mouseX.set(e.clientX + 14);
+      mouseY.set(e.clientY + 66);
 
       const target = e.target as HTMLElement;
       const clickable = target.closest('a, button, input, textarea, [role="button"]');
@@ -48,37 +45,25 @@ export default function CursorFollower() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
-      {/* Large soft radial ambient aura */}
+      {/* Pure Frosted Glass Bubble */}
       <motion.div
         style={{
-          x: glowX,
-          y: glowY,
-          translateX: '-50%',
-          translateY: '-50%',
-        }}
-        className="w-72 h-72 rounded-full bg-gradient-to-tr from-indigo-600/15 via-violet-500/10 to-cyan-400/15 blur-3xl"
-      />
-
-      {/* Interactive trailing glass bubble */}
-      <motion.div
-        style={{
-          x: smoothX,
-          y: smoothY,
+          x: bubbleX,
+          y: bubbleY,
           translateX: '-50%',
           translateY: '-50%',
         }}
         animate={{
-          scale: isHoveringClickable ? 1.8 : 1,
-          backgroundColor: isHoveringClickable
-            ? 'rgba(99, 102, 241, 0.16)'
-            : 'rgba(99, 102, 241, 0.06)',
-          borderColor: isHoveringClickable
-            ? 'rgba(129, 140, 248, 0.7)'
-            : 'rgba(129, 140, 248, 0.35)',
+          scale: isHoveringClickable ? 1.55 : 1,
         }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        className="w-9 h-9 rounded-full border backdrop-blur-[1px]"
-      />
+        transition={{
+          scale: { type: 'spring', stiffness: 280, damping: 24 },
+        }}
+        className="fixed top-0 left-0 w-9 h-9 rounded-full bg-white/[0.06] border border-white/25 backdrop-blur-md shadow-[inset_0_2px_6px_rgba(255,255,255,0.28),0_8px_20px_rgba(0,0,0,0.45)] flex items-start justify-start p-1.5"
+      >
+        {/* Subtle Glass Specular Reflection */}
+        <span className="w-2 h-1 rounded-full bg-white/50 -rotate-45 blur-[0.5px]" />
+      </motion.div>
     </div>
   );
 }
